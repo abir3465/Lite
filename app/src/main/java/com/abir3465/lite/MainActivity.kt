@@ -41,6 +41,8 @@ class MainActivity : AppCompatActivity() {
                     "static.xx.fbcdn.net",
                     "business.facebook.com",
                     "l.facebook.com"
+                    "messenger.com",
+                    "m.me"
                 )
 
                 val staysInWebView =
