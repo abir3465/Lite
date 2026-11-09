@@ -31,7 +31,23 @@ class MainActivity : AppCompatActivity() {
         val settings: WebSettings = webView.settings
         settings.javaScriptEnabled = true
         settings.domStorageEnabled = true
-.host ?: return false
+        settings.databaseEnabled = true
+        settings.allowFileAccess = false
+        settings.allowContentAccess = true
+        settings.loadsImagesAutomatically = true
+        settings.useWideViewPort = true
+        settings.loadWithOverviewMode = true
+        settings.setSupportZoom(true)
+        settings.builtInZoomControls = true
+        settings.displayZoomControls = false
+
+        webView.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest
+            ): Boolean {
+                val uri: Uri = request.url
+                val host = uri.host ?: return true
 
                 val allowedHosts = listOf(
                     "m.facebook.com",
@@ -40,7 +56,7 @@ class MainActivity : AppCompatActivity() {
                     "fbcdn.net",
                     "static.xx.fbcdn.net",
                     "business.facebook.com",
-                    "l.facebook.com"
+                    "l.facebook.com",
                     "messenger.com",
                     "m.me"
                 )
@@ -50,7 +66,7 @@ class MainActivity : AppCompatActivity() {
 
                 if (staysInWebView) return false
 
-                startActivity(Intent(Intent.ACTION_VIEW, url))
+                startActivity(Intent(Intent.ACTION_VIEW, uri))
                 return true
             }
         }
