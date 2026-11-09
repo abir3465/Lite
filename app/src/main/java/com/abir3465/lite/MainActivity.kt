@@ -1,16 +1,15 @@
 package com.abir3465.lite
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.webkit.CookieManager
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.appbar.MaterialToolbar
 
 class MainActivity : AppCompatActivity() {
 
@@ -21,25 +20,35 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val toolbar = findViewById<MaterialToolbar>(R.id.topAppBar)
-        val backButton = findViewById<Button>(R.id.backButton)
-        val homeButton = findViewById<Button>(R.id.homeButton)
-        val refreshButton = findViewById<Button>(R.id.refreshButton)
-
         webView = findViewById(R.id.webView)
 
-        val settings: WebSettings = webView.settings
-        settings.javaScriptEnabled = true
-        settings.domStorageEnabled = true
-        settings.databaseEnabled = true
-        settings.allowFileAccess = false
-        settings.allowContentAccess = true
-        settings.loadsImagesAutomatically = true
-        settings.useWideViewPort = true
-        settings.loadWithOverviewMode = true
-        settings.setSupportZoom(true)
-        settings.builtInZoomControls = true
-        settings.displayZoomControls = false
+        CookieManager.getInstance().apply {
+            setAcceptCookie(true)
+            setAcceptThirdPartyCookies(webView, true)
+        }
+
+        webView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            databaseEnabled = true
+            allowFileAccess = false
+            allowContentAccess = true
+            loadsImagesAutomatically = true
+            useWideViewPort = true
+            loadWithOverviewMode = false
+            setSupportZoom(true)
+            builtInZoomControls = true
+            displayZoomControls = false
+            javaScriptCanOpenWindowsAutomatically = false
+            setSupportMultipleWindows(false)
+
+            // Request a desktop-style page from Messenger.
+            userAgentString = userAgentString
+                .replace("; wv)", ")")
+                .replace(" Mobile", "")
+        }
+
+        webView.webChromeClient = WebChromeClient()
 
         webView.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(
@@ -47,65 +56,26 @@ class MainActivity : AppCompatActivity() {
                 request: WebResourceRequest
             ): Boolean {
                 val uri: Uri = request.url
-                val host = uri.host ?: return true
 
-                val allowedHosts = listOf(
-                    "m.facebook.com",
-                    "www.facebook.com",
-                    "facebook.com",
-                    "fbcdn.net",
-                    "static.xx.fbcdn.net",
-                    "business.facebook.com",
-                    "l.facebook.com",
-                    "messenger.com",
-                    "m.me"
-                )
-
-                val staysInWebView =
-                    allowedHosts.any { host == it || host.endsWith(".$it") }
-
-                if (staysInWebView) return false
-
-                startActivity(Intent(Intent.ACTION_VIEW, uri))
-                return true
+                // Keep web links in this APK; block links that launch other apps.
+                return uri.scheme != "https" && uri.scheme != "http"
             }
         }
 
-        backButton.setOnClickListener {
-            if (webView.canGoBack()) webView.goBack()
-        }
-
-        homeButton.setOnClickListener {
-            webView.loadUrl("https://m.facebook.com")
-        }
-
-        refreshButton.setOnClickListener {
-            webView.reload()
-        }
-
-        toolbar.setNavigationOnClickListener {
-            if (webView.canGoBack()) webView.goBack()
-        }
-
-        toolbar.setOnMenuItemClickListener { menuItem ->
-            if (menuItem.itemId == R.id.action_open_browser) {
-                val uri = Uri.parse(webView.url ?: "https://m.facebook.com")
-                startActivity(Intent(Intent.ACTION_VIEW, uri))
-                true
-            } else {
-                false
-            }
-        }
-
-        webView.loadUrl("https://m.facebook.com")
+        webView.loadUrl("https://www.messenger.com/")
     }
 
     @Deprecated("Deprecated in Android")
     override fun onBackPressed() {
-        if (webView.canGoBack()) {
+        if (::webView.isInitialized && webView.canGoBack()) {
             webView.goBack()
         } else {
             super.onBackPressed()
         }
+    }
+
+    override fun onDestroy() {
+        webView.destroy()
+        super.onDestroy()
     }
 }
