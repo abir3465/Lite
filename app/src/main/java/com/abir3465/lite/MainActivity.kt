@@ -38,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (uri.scheme == "intent" || uri.scheme == "fb-messenger") {
-            view?.loadUrl("https://www.messenger.com/login/")
+            view?.loadUrl("https://web.messenger.com/")
         }
 
         return true // Don't try to launch another app.
